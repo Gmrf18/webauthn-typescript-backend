@@ -1,17 +1,18 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import type { AuthenticatorTransportFuture } from '@simplewebauthn/types';
+import type { AuthenticatorTransportFuture } from '@simplewebauthn/server';
 
-// Definición del documento User para Mongoose
+// User document definition for Mongoose
 export interface IUser extends Document {
-  id: Buffer; // Mongoose no soporta Uint8Array directamente, usamos Buffer
+  id: Buffer; // Mongoose does not directly support Uint8Array, we use Buffer
   username: string;
   currentChallenge?: string;
 }
 
-// Definición del documento Credential para Mongoose
+// Credential document definition for Mongoose
 export interface ICredential extends Document {
   id: string;
-  publicKey: Buffer; // Mongoose no soporta Uint8Array directamente, usamos Buffer
+  userId: Buffer; // Reference to the user
+  publicKey: Buffer; // Mongoose does not directly support Uint8Array, we use Buffer
   transports: AuthenticatorTransportFuture[];
   counter?: number;
 }
@@ -26,6 +27,7 @@ const UserSchema: Schema = new Schema({
 // Esquema de Credencial
 const CredentialSchema: Schema = new Schema({
   id: { type: String, required: true, unique: true },
+  userId: { type: Buffer, required: true }, // Reference to the user
   publicKey: { type: Buffer, required: true },
   transports: [{ type: String }], // Almacenar transports como strings
   counter: { type: Number, required: false }

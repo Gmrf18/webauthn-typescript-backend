@@ -1,8 +1,6 @@
-
-import type { AuthenticatorTransportFuture } from '@simplewebauthn/types';
-import { connectToDatabase } from './mongodb';
-import { UserModel, CredentialModel, IUser, ICredential } from './models';
-import mongoose from 'mongoose';
+import type { AuthenticatorTransportFuture } from '@simplewebauthn/server'
+import { connectToDatabase } from './mongodb'
+import { CredentialModel, UserModel } from './models'
 
 // Asegurarse de que la conexión a la base de datos esté establecida
 const initializeDb = async () => {
@@ -20,13 +18,14 @@ const bufferToUint8Array = (buffer: Buffer): Uint8Array => {
 
 // Definiciones de interfaces actualizadas (si es necesario mantenerlas)
 export interface User {
-  id: Uint8Array<ArrayBufferLike>;
+  id: Uint8Array;
   username: string;
   currentChallenge?: string;
 }
 
 export interface Credential {
   id: string;
+  userId: Uint8Array;
   publicKey: Uint8Array;
   transports: AuthenticatorTransportFuture[];
   counter?: number;
@@ -53,9 +52,12 @@ export const db = {
   findUserByUsername: async (username: string): Promise<User | null> => {
     await initializeDb();
     const user = await UserModel.findOne({ username }).exec();
+    console.log('uBefore', user)
+    user.toObject()
+    console.log('uAfter', user)
     if (!user) return null;
     return {
-      ...user.toObject(),
+      ...user,
       id: bufferToUint8Array(user.id as Buffer)
     } as User;
   },
@@ -63,9 +65,10 @@ export const db = {
   findUserById: async (id: Uint8Array): Promise<User | null> => {
     await initializeDb();
     const user = await UserModel.findOne({ id: uint8ArrayToBuffer(id) }).exec();
+    user.toObject()
     if (!user) return null;
     return {
-      ...user.toObject(),
+      ...user,
       id: bufferToUint8Array(user.id as Buffer)
     } as User;
   },
@@ -85,16 +88,18 @@ export const db = {
   },
 
   // Operaciones con Credenciales
-  createCredential: async (credential: Omit<Credential, 'id'> & { id: string }): Promise<Credential> => {
+  createCredential: async (credential: Omit<Credential, 'id'> & { id: string, userId: Uint8Array }): Promise<Credential> => {
     await initializeDb();
     const newCredential = new CredentialModel({
       ...credential,
+      userId: uint8ArrayToBuffer(credential.userId),
       publicKey: uint8ArrayToBuffer(credential.publicKey)
     });
     const savedCredential = await newCredential.save();
     return {
       ...savedCredential.toObject(),
-      publicKey: bufferToUint8Array(savedCredential.publicKey as Buffer)
+      publicKey: bufferToUint8Array(savedCredential.publicKey as Buffer),
+      userId: bufferToUint8Array(savedCredential.userId as Buffer)
     } as Credential;
   },
 
@@ -104,7 +109,8 @@ export const db = {
     if (!credential) return null;
     return {
       ...credential.toObject(),
-      publicKey: bufferToUint8Array(credential.publicKey as Buffer)
+      publicKey: bufferToUint8Array(credential.publicKey as Buffer),
+      userId: bufferToUint8Array(credential.userId as Buffer)
     } as Credential;
   },
 
@@ -118,8 +124,20 @@ export const db = {
     if (!credential) return null;
     return {
       ...credential.toObject(),
-      publicKey: bufferToUint8Array(credential.publicKey as Buffer)
+      publicKey: bufferToUint8Array(credential.publicKey as Buffer),
+      userId: bufferToUint8Array(credential.userId as Buffer)
     } as Credential;
+  },
+  
+  // Obtener credenciales por usuario (para usar en getLoginOptions)
+  getCredentialsByUserId: async (userId: Uint8Array): Promise<Credential[]> => {
+    await initializeDb();
+    const credentials = await CredentialModel.find({ userId: uint8ArrayToBuffer(userId) }).exec();
+    return credentials.map(cred => ({
+      ...cred.toObject(),
+      publicKey: bufferToUint8Array(cred.publicKey as Buffer),
+      userId: bufferToUint8Array(cred.userId as Buffer)
+    })) as Credential[];
   },
   
   // Obtener todas las credenciales (para usar en getLoginOptions)
@@ -128,7 +146,8 @@ export const db = {
     const credentials = await CredentialModel.find({}).exec();
     return credentials.map(cred => ({
       ...cred.toObject(),
-      publicKey: bufferToUint8Array(cred.publicKey as Buffer)
+      publicKey: bufferToUint8Array(cred.publicKey as Buffer),
+      userId: bufferToUint8Array(cred.userId as Buffer)
     })) as Credential[];
   }
 };

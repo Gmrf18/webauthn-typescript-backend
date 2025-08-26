@@ -43,18 +43,19 @@ export async function verifyRegistration(response: RegistrationResponseJSON, exp
 }
 
 export async function getLoginOptions(user: User) {
-  // Obtener todas las credenciales de la base de datos
-  const credentials = await db.getAllCredentials();
-  
-  return await generateAuthenticationOptions({
-    rpID,
-    allowCredentials: credentials
-      .filter(cred => cred?.id !== undefined)
-      .map(cred => ({
+  const credentialsAwait = await db.getCredentialsByUserId(user.id);
+  const credentials = credentialsAwait
+    .filter(cred => cred.id !== undefined)
+    .map(cred => {
+      return {
         id: cred.id,
         type: 'public-key',
         transports: cred.transports
-      })),
+      }
+    })
+  return await generateAuthenticationOptions({
+    rpID,
+    allowCredentials: credentials,
     userVerification: 'preferred'
   })
 }
