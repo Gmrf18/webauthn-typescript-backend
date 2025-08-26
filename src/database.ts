@@ -101,7 +101,7 @@ export const db = {
 
   findCredentialById: async (id: string): Promise<Credential | null> => {
     await initializeDb();
-    const credential = await CredentialModel.findById(id).exec();
+    const credential = await CredentialModel.findOne({ id }).exec();
     if (!credential) return null;
     return {
       ...(credential.toObject()),
@@ -112,8 +112,8 @@ export const db = {
 
   updateCredentialCounter: async (id: string, newCounter: number): Promise<Credential | null> => {
     await initializeDb();
-    const credential = await CredentialModel.findByIdAndUpdate(
-      id,
+    const credential = await CredentialModel.findOneAndUpdate(
+      { id },
       { counter: newCounter },
       { new: true } // Devuelve el documento actualizado
     ).exec();

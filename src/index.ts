@@ -106,7 +106,6 @@ app.post('/generate-login-options', async (req: Request, res: Response) => {
 
   try {
     const options = await getLoginOptions(user)
-
     await db.updateUserChallenge(user.id, options.challenge)
     res.json(options)
   } catch (error) {
@@ -116,7 +115,8 @@ app.post('/generate-login-options', async (req: Request, res: Response) => {
 })
 
 app.post('/verify-login', async (req: Request, res: Response) => {
-  const {username, response} = req.body as { username: string; response: AuthenticationResponseJSON }
+  const {username, assertion} = req.body as { username: string; assertion: AuthenticationResponseJSON }
+
   const user = await db.findUserByUsername(username)
 
   if (!user) {
@@ -127,15 +127,14 @@ app.post('/verify-login', async (req: Request, res: Response) => {
     return res.status(400).json({error: 'No challenge found for user'})
   }
 
-  const credential = await db.findCredentialById(response.id)
+  const credential = await db.findCredentialById(assertion.id)
 
   if (!credential) {
     return res.status(404).json({error: 'Credential not found'})
   }
 
   try {
-    const verification = await verifyLogin(response, credential, user.currentChallenge)
-
+    const verification = await verifyLogin(assertion, credential, user.currentChallenge)
     if (verification.verified && verification.authenticationInfo) {
       await db.updateCredentialCounter(credential.id, verification.authenticationInfo.newCounter)
 

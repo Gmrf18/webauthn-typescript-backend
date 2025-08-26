@@ -61,7 +61,6 @@ export async function getLoginOptions(user: User) {
 }
 
 export async function verifyLogin(response: AuthenticationResponseJSON, credential: any, expectedChallenge: string): Promise<VerifiedAuthenticationResponse> {
-  console.log('verificacion')
   return await verifyAuthenticationResponse({
     response,
     expectedChallenge,
