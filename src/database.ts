@@ -44,7 +44,7 @@ export const db = {
     });
     const savedUser = await newUser.save();
     return {
-      ...savedUser.toObject(),
+      ...(savedUser.toObject()),
       id: bufferToUint8Array(savedUser.id as Buffer)
     } as User;
   },
@@ -52,12 +52,9 @@ export const db = {
   findUserByUsername: async (username: string): Promise<User | null> => {
     await initializeDb();
     const user = await UserModel.findOne({ username }).exec();
-    console.log('uBefore', user)
-    user.toObject()
-    console.log('uAfter', user)
     if (!user) return null;
     return {
-      ...user,
+      ...(user.toObject()),
       id: bufferToUint8Array(user.id as Buffer)
     } as User;
   },
@@ -65,10 +62,9 @@ export const db = {
   findUserById: async (id: Uint8Array): Promise<User | null> => {
     await initializeDb();
     const user = await UserModel.findOne({ id: uint8ArrayToBuffer(id) }).exec();
-    user.toObject()
     if (!user) return null;
     return {
-      ...user,
+      ...(user.toObject()),
       id: bufferToUint8Array(user.id as Buffer)
     } as User;
   },
@@ -82,7 +78,7 @@ export const db = {
     ).exec();
     if (!user) return null;
     return {
-      ...user.toObject(),
+      ...(user.toObject()),
       id: bufferToUint8Array(user.id as Buffer)
     } as User;
   },
@@ -97,7 +93,7 @@ export const db = {
     });
     const savedCredential = await newCredential.save();
     return {
-      ...savedCredential.toObject(),
+      ...(savedCredential.toObject()),
       publicKey: bufferToUint8Array(savedCredential.publicKey as Buffer),
       userId: bufferToUint8Array(savedCredential.userId as Buffer)
     } as Credential;
@@ -108,7 +104,7 @@ export const db = {
     const credential = await CredentialModel.findById(id).exec();
     if (!credential) return null;
     return {
-      ...credential.toObject(),
+      ...(credential.toObject()),
       publicKey: bufferToUint8Array(credential.publicKey as Buffer),
       userId: bufferToUint8Array(credential.userId as Buffer)
     } as Credential;
@@ -123,7 +119,7 @@ export const db = {
     ).exec();
     if (!credential) return null;
     return {
-      ...credential.toObject(),
+      ...(credential.toObject()),
       publicKey: bufferToUint8Array(credential.publicKey as Buffer),
       userId: bufferToUint8Array(credential.userId as Buffer)
     } as Credential;
@@ -134,7 +130,7 @@ export const db = {
     await initializeDb();
     const credentials = await CredentialModel.find({ userId: uint8ArrayToBuffer(userId) }).exec();
     return credentials.map(cred => ({
-      ...cred.toObject(),
+      ...(cred.toObject()),
       publicKey: bufferToUint8Array(cred.publicKey as Buffer),
       userId: bufferToUint8Array(cred.userId as Buffer)
     })) as Credential[];
@@ -145,7 +141,7 @@ export const db = {
     await initializeDb();
     const credentials = await CredentialModel.find({}).exec();
     return credentials.map(cred => ({
-      ...cred.toObject(),
+      ...(cred.toObject()),
       publicKey: bufferToUint8Array(cred.publicKey as Buffer),
       userId: bufferToUint8Array(cred.userId as Buffer)
     })) as Credential[];

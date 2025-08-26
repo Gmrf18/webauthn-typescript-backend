@@ -65,7 +65,6 @@ app.post('/verify-registration', async (req: Request, res: Response) => {
   if (!user) {
     return res.status(404).json({error: 'User not found'})
   }
-
   if (!user.currentChallenge) {
     return res.status(400).json({error: 'No challenge found for user'})
   }
