@@ -1,90 +1,44 @@
-# WebAuthn Backend con Supabase
+# WebAuthn Backend
 
-Este proyecto es un backend de Node.js diseñado para implementar y probar la autenticación sin contraseña utilizando el estándar **WebAuthn**. Utiliza Express.js para el servidor, TypeScript para un tipado seguro, y se integra con **Supabase** para la persistencia de datos de usuarios y autenticadores.
+This project is a Node.js backend designed to implement and test passwordless authentication using the **WebAuthn** standard. It uses Express.js for the server and TypeScript for type safety.
 
-## 🚀 Inicio Rápido
+## 🚀 Quick Start
 
-Sigue estos pasos para poner en marcha el servidor de desarrollo localmente.
+Follow these steps to get the development server up and running locally.
 
-### Prerrequisitos
+### Prerequisites
 
--   [Node.js](https://nodejs.org/) (versión 18 o superior)
--   Una cuenta de [Supabase](https://supabase.com/) con un proyecto creado.
+-   [Node.js](https://nodejs.org/) (version 18 or higher)
 
-### 1. Clonar el repositorio
+### 1. Clone the repository
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone <REPOSITORY_URL>
 cd webauthn-back
 ```
 
-### 2. Configurar variables de entorno
-
-Copia el archivo de ejemplo `.env.example` y renómbralo a `.env`.
-
-```bash
-cp .env.example .env
-```
-
-Ahora, abre el archivo `.env` y añade tus credenciales del proyecto de Supabase y la configuración de WebAuthn.
-
-```env
-# URL de tu proyecto de Supabase
-SUPABASE_URL=https://<id-proyecto>.supabase.co
-
-# Clave anónima (pública) de tu proyecto de Supabase
-SUPABASE_ANON_KEY=<tu-anon-key>
-
-# --- Configuración de WebAuthn ---
-
-# Nombre de tu aplicación (Relying Party Name)
-RP_NAME="Mi App con WebAuthn"
-
-# ID de tu Relying Party (generalmente el dominio donde se aloja el frontend)
-# En desarrollo, puede ser 'localhost'
-RP_ID=localhost
-
-# Origen desde donde se permitirán las peticiones (URL del frontend)
-# En desarrollo, suele ser http://localhost:3000 o similar
-ORIGIN=http://localhost:3000
-```
-
-### 3. Instalar dependencias
+### 2. Install dependencies
 
 ```bash
 npm install
-# o
-yarn install
 ```
 
-### Desarrollo
+### 3. Start the development server
+
 ```bash
 npm run dev
-# o
-yarn dev
 ```
 
-### Construcción
-```bash
-npm run build
-# o
-yarn build
-```
+The server will start at `http://localhost:3001`.
 
-### Producción
-```bash
-npm start
-# o
-yarn start
-```
-
-## 📁 Estructura del proyecto
+## 📁 Project Structure
 
 ```
 webauthn-back/
 ├── src/
-│   └── index.ts          # Punto de entrada principal
-├── dist/                 # Archivos compilados (generado)
+│   ├── index.ts          # Main entry point
+│   ├── database.ts       # In-memory database
+│   └── webauthn.ts       # WebAuthn logic
 ├── package.json
 ├── tsconfig.json
 ├── README.md
@@ -93,18 +47,38 @@ webauthn-back/
 
 ## 📡 Endpoints
 
-- `GET /` - Devuelve "Hola mundo"
+The available API endpoints are described below:
 
-## 🛠️ Tecnologías
+### Authentication
+
+- `POST /generate-registration-options` - Generates the options for registering a new device.
+  - **Body:** `{ "username": "<username>" }`
+- `POST /verify-registration` - Verifies the device's response and saves the new credential.
+  - **Body:** `{ "username": "<username>", "response": { ... } }`
+- `POST /generate-login-options` - Generates the options for user authentication.
+  - **Body:** `{ "username": "<username>" }`
+- `POST /verify-login` - Verifies the device's response and authenticates the user.
+  - **Body:** `{ "username": "<username>", "response": { ... } }`
+
+### General
+
+- `GET /` - Returns `{"message":"Hola mundo"}`
+
+## 🗃️ In-memory Database
+
+This project uses an in-memory database to store users and credentials. This means that the data will be lost every time the server is restarted. This setup is ideal for development and testing, but it is not suitable for a production environment.
+
+## 🛠️ Technologies
 
 - Node.js
 - TypeScript
 - Express.js
-- ts-node-dev (desarrollo)
+- @simplewebauthn/server
+- ts-node-dev (development)
 
-## 📝 Scripts disponibles
+## 📝 Available Scripts
 
-- `npm run dev` - Inicia el servidor en modo desarrollo con recarga automática
-- `npm run build` - Compila TypeScript a JavaScript
-- `npm start` - Inicia el servidor en modo producción
-- `npm run clean` - Limpia los archivos compilados
+- `npm run dev` - Starts the server in development mode with auto-reloading.
+- `npm run build` - Compiles TypeScript to JavaScript.
+- `npm run start` - Starts the server in production mode.
+- `npm run clean` - Cleans the compiled files.
